@@ -580,7 +580,9 @@ def p_is_reference(p):
 
 def p_parameter_list(p):
     '''parameter_list : parameter_list COMMA parameter
-                      | parameter'''
+                      | parameter
+                      | parameter_list COMMA typed_parameter
+                      | typed_parameter'''
     if len(p) == 4:
         p[0] = p[1] + [p[3]]
     else:
@@ -594,6 +596,7 @@ def p_parameter(p):
     '''parameter : VARIABLE
                  | AND VARIABLE
                  | VARIABLE EQUALS static_scalar
+                 | VARIABLE EQUALS class_constant
                  | AND VARIABLE EQUALS static_scalar'''
     if len(p) == 2:
         p[0] = ast.FormalParameter(p[1], None, False, lineno=p.lineno(1))
@@ -603,6 +606,16 @@ def p_parameter(p):
         p[0] = ast.FormalParameter(p[1], p[3], False, lineno=p.lineno(1))
     else:
         p[0] = ast.FormalParameter(p[2], p[4], True, lineno=p.lineno(1))
+
+def p_typed_parameter(p):
+    '''typed_parameter : class_name VARIABLE
+                       | ARRAY VARIABLE
+                       | class_name VARIABLE EQUALS static_scalar
+                       | ARRAY VARIABLE EQUALS static_scalar'''
+    if len(p) == 3:
+        p[0] = ast.TypedFormalParameter(p[2], None, False, p[1], lineno=p.lineno(1))
+    elif len(p) == 5:
+        p[0] = ast.TypedFormalParameter(p[2], p[4], False, p[1], lineno=p.lineno(1))
 
 def p_expr_variable(p):
     'expr : variable'
